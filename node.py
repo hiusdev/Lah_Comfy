@@ -4,7 +4,9 @@ import os
 import shutil
 import folder_paths
 from nodes import NODE_CLASS_MAPPINGS as ALL_NODE
-
+import requests
+import base64
+from io import BytesIO
 
 def parse_args(config):
     args = []
@@ -97,7 +99,6 @@ def download_model(url, folder_paths, name):
     return os.path.join(folder_paths, file_name)
 
 
-
 def move_and_rename_file(src_path, dest_dir, new_name):
 
     # Kiểm tra nếu file nguồn tồn tại
@@ -153,22 +154,103 @@ class LoraDownload:
     def INPUT_TYPES(s):
         return {
             "required": {
-                "model": ("MODEL", {"tooltip": "The diffusion model the LoRA will be applied to."}),
-                "clip": ("CLIP", {"default": None, "tooltip": "The CLIP model the LoRA will be applied to."}),
-                "url": ("STRING", {"default": "", "multiline": False},),
-                "lora_name": ("STRING", {"default": "hius_123", "multiline": False},),
-                "strength_model": ("FLOAT", {"default": 1.0, "min": -100.0, "max": 100.0, "step": 0.01, "tooltip": "How strongly to modify the diffusion model. This value can be negative."}),
-                "strength_clip": ("FLOAT", {"default": 1.0, "min": -100.0, "max": 100.0, "step": 0.01, "tooltip": "How strongly to modify the CLIP model. This value can be negative."}),
+                "model": (
+                    "MODEL",
+                    {"tooltip": "The diffusion model the LoRA will be applied to."},
+                ),
+                "clip": (
+                    "CLIP",
+                    {
+                        "default": None,
+                        "tooltip": "The CLIP model the LoRA will be applied to.",
+                    },
+                ),
+                "url": (
+                    "STRING",
+                    {"default": "", "multiline": False},
+                ),
+                "lora_name": (
+                    "STRING",
+                    {"default": "hius_123", "multiline": False},
+                ),
+                "strength_model": (
+                    "FLOAT",
+                    {
+                        "default": 1.0,
+                        "min": -100.0,
+                        "max": 100.0,
+                        "step": 0.01,
+                        "tooltip": "How strongly to modify the diffusion model. This value can be negative.",
+                    },
+                ),
+                "strength_clip": (
+                    "FLOAT",
+                    {
+                        "default": 1.0,
+                        "min": -100.0,
+                        "max": 100.0,
+                        "step": 0.01,
+                        "tooltip": "How strongly to modify the CLIP model. This value can be negative.",
+                    },
+                ),
             },
         }
 
     RETURN_TYPES = ("MODEL", "CLIP")
-    OUTPUT_TOOLTIPS = ("The modified diffusion model.",
-                       "The modified CLIP model.")
+    OUTPUT_TOOLTIPS = ("The modified diffusion model.", "The modified CLIP model.")
     FUNCTION = "load_lora"
     CATEGORY = "LahTeam/Download"
 
     def load_lora(self, model, clip, url, lora_name, strength_model, strength_clip):
         lora_path = download_lora(url, lora_name)
-        return ALL_NODE["LoraLoader"]().load_lora(model, clip, lora_path, strength_model, strength_clip)
+        return ALL_NODE["LoraLoader"]().load_lora(
+            model, clip, lora_path, strength_model, strength_clip
+        )
 
+
+class ImageWebHook:
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "image": ("IMAGE",),
+                "url": (
+                    "STRING",
+                    {"default": "", "multiline": False},
+                ),
+                "id": (
+                    "STRING",
+                    {"default": "", "multiline": False},
+                ),
+            }
+        }
+    
+    # RETURN_TYPES = ("MODEL", "CLIP")
+    OUTPUT_TOOLTIPS = ("The modified diffusion model.", "The modified CLIP model.")
+    FUNCTION = "image_hook"
+    CATEGORY = "LahTeam/Hook"
+
+    def image_hook(self, image, url, id ):
+        buffered = BytesIO()
+        image.save(buffered, format="JPEG")
+        img_str = base64.b64encode(buffered.getvalue())
+        data = {
+          'image': img_str,
+          'id': id
+        }
+        requests.post(url, json=data)
+        return()
+
+
+
+
+# 
+
+# webhook_url = 'https://webhook.site/6fc07e80-8474-45f8-9151-84019212363d'
+
+# data = {
+#   'image': 'user_signed_up',
+#   'id': 12345
+# }
+
+# requests.post(webhook_url, json=data)
