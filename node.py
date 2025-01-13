@@ -234,6 +234,10 @@ class ImageWebHook:
     OUTPUT_NODE = True
 
     def image_hook(self, images, url, id):
+
+        print(f"url webhook: {url}")
+        print(f"id: {id}")
+        
         for batch_number, image in enumerate(images):
             i = 255. * image.cpu().numpy()
             img = Image.fromarray(np.clip(i, 0, 255).astype(np.uint8))
