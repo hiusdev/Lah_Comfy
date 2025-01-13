@@ -7,6 +7,8 @@ from nodes import NODE_CLASS_MAPPINGS as ALL_NODE
 import requests
 import base64
 from io import BytesIO
+from PIL import Image
+import numpy as np
 
 def parse_args(config):
     args = []
@@ -213,7 +215,7 @@ class ImageWebHook:
     def INPUT_TYPES(s):
         return {
             "required": {
-                "image": ("IMAGE",),
+                "images": ("IMAGE",),
                 "url": (
                     "STRING",
                     {"default": "", "multiline": False},
@@ -224,33 +226,23 @@ class ImageWebHook:
                 ),
             }
         }
-    
-    # RETURN_TYPES = ("MODEL", "CLIP")
+
+    RETURN_TYPES = ()
     OUTPUT_TOOLTIPS = ("The modified diffusion model.", "The modified CLIP model.")
     FUNCTION = "image_hook"
     CATEGORY = "LahTeam/Hook"
+    OUTPUT_NODE = True
 
-    def image_hook(self, image, url, id ):
-        buffered = BytesIO()
-        image.save(buffered, format="JPEG")
-        img_str = base64.b64encode(buffered.getvalue())
-        data = {
-          'image': img_str,
-          'id': id
-        }
-        requests.post(url, json=data)
-        return()
-
-
-
-
-# 
-
-# webhook_url = 'https://webhook.site/6fc07e80-8474-45f8-9151-84019212363d'
-
-# data = {
-#   'image': 'user_signed_up',
-#   'id': 12345
-# }
-
-# requests.post(webhook_url, json=data)
+    def image_hook(self, images, url, id):
+        for batch_number, image in enumerate(images):
+            i = 255. * image.cpu().numpy()
+            img = Image.fromarray(np.clip(i, 0, 255).astype(np.uint8))
+            buffer = BytesIO()
+            img.save(buffer, format="PNG")
+            buffer.seek(0)
+            img_data = buffer.getvalue()
+            img_str = base64.b64encode(img_data).decode("utf-8")
+            payload = {"image": img_str, "id": id}
+            headers = {"Content-Type": "application/json"}
+            requests.post(url, json=payload, headers=headers)
+        return ()
