@@ -302,13 +302,13 @@ class ImageWebHook:
                 headers = {"Content-Type": "application/json"}
 
                 # Make the POST request
-                response = requests.post(url, json=payload, headers=headers)
+                requests.post(url, json=payload, headers=headers)
 
-                # Check the response for errors
-                if response.status_code != 200:
-                    raise requests.exceptions.RequestException(
-                        f"Error {response.status_code}: {response.text}"
-                    )
+                # # Check the response for errors
+                # if response.status_code != 200:
+                #     raise requests.exceptions.RequestException(
+                #         f"Error {response.status_code}: {response.text}"
+                #     )
         except Exception as e:
             # Log the exception details or handle them appropriately
             print(f"An error occurred: {e}")
