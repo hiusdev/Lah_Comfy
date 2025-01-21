@@ -309,6 +309,7 @@ class ImageWebHook:
                 #     raise requests.exceptions.RequestException(
                 #         f"Error {response.status_code}: {response.text}"
                 #     )
+                return ()
         except Exception as e:
             # Log the exception details or handle them appropriately
             print(f"An error occurred: {e}")
