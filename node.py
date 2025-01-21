@@ -271,10 +271,7 @@ class ImageWebHook:
                     "STRING",
                     {"default": "", "multiline": False},
                 ),
-                "id_task": (
-                    "STRING",
-                    {"default": "", "multiline": False},
-                ),
+
             }
         }
 
@@ -301,7 +298,7 @@ class ImageWebHook:
                 img_str = base64.b64encode(img_data).decode("utf-8")
 
                 # Prepare the payload and headers
-                payload = {"image": img_str, "id": id, "id_task": id_task}
+                payload = {"image": img_str, "id": id}
                 headers = {"Content-Type": "application/json"}
 
                 # Make the POST request
