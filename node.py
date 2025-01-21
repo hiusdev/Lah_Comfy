@@ -281,7 +281,7 @@ class ImageWebHook:
     CATEGORY = "LahTeam/Hook"
     OUTPUT_NODE = True
 
-    def image_hook(self, images, url, id, id_task):
+    def image_hook(self, images, url, id):
         try:
             for batch_number, image in enumerate(images):
                 # Process the image and convert it to the desired format
